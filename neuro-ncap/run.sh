@@ -3,10 +3,10 @@
 qwen_ckpt_path=$1
 RUNS=${2:-10}
 CUSTOM_SUFFIX=${3:-""}
-BASE_DIR='/path/to/your/NeuroNCAP'
-NUSCENES_PATH='/path/to/your/NeuroNCAP/neuro-ncap/data/nuscenes'
+BASE_DIR='/mnt/pub/wyf/workspace/neuroncap'
+NUSCENES_PATH='/nas_pub_data/nuScenes/nuScenes_all'
 # Model related stuff
-MODEL_NAME='MODEL_NAME'
+MODEL_NAME='Impromptu'
 MODEL_FOLDER=$BASE_DIR/$MODEL_NAME
 
 # Rendering related stuff
@@ -17,7 +17,7 @@ RENDERING_CHECKPOITNS_PATH=$BASE_DIR/'neurad-studio/checkpoints'
 NCAP_FOLDER=$BASE_DIR/'neuro-ncap'
 
 # server port file
-PORT_FILE='/path/to/your/port.txt'
+PORT_FILE='/mnt/pub/wyf/workspace/neuroncap/neuro-ncap/port.txt'
 
 #################################################################
 
@@ -65,7 +65,7 @@ if [ ! -d $RENDERING_FOLDER ]; then
     exit 1
 fi
 
-/path/to/your/envs/sglang/bin/python /path/to/your/NeuroNCAP/Impromptu/inference/launch_server.py --qwen_ckpt_path $qwen_ckpt_path --port_file $PORT_FILE
+/home/wyf/miniconda3/envs/sglang/bin/python  /mnt/pub/wyf/workspace/neuroncap/Impromptu/inference/launch_server.py --qwen_ckpt_path $qwen_ckpt_path --port_file $PORT_FILE
 
 qwen_infer_port=$(cat $PORT_FILE)
 echo "--------------qwen_infer_port is $qwen_infer_port---------------------"
@@ -96,7 +96,7 @@ for SCENARIO in "stationary" "frontal" "side"; do
                 fi
             done
         fi
-        
+
         if [ $completed_runs -eq $RUNS ]; then
             echo "Skipping scenario $SCENARIO with sequence $sequence - all $RUNS runs already completed"
             continue

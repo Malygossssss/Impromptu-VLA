@@ -28,7 +28,7 @@ def start_qwen_server(
     disable_radix_cache: bool = False,
 ):
     cmd_parts = [
-        "/path/to/your/envs/sglang/bin/python -m sglang.launch_server",
+        "/home/wyf/miniconda3/envs/sglang/bin/python -m sglang.launch_server",
         f"--model-path {qwen_ckpt_path}",
         "--chat-template=qwen2-vl",
     ]
