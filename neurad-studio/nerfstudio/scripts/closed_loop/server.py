@@ -48,12 +48,15 @@ class ClosedLoopServer:
     """Whether to require all cameras to have the same size."""
     adjust_pose: bool = False
     """Whether to adjust the height of rendered cameras to match the nearest training camera."""
+    eval_num_rays_per_chunk: Optional[int] = None
+    """Number of rays per forward pass. Reduce (e.g., 4096) to avoid GPU OOM."""
 
     @torch.no_grad()
     def main(self):
         assert self.load_config is not None, "Must specify a config file to load"
         _, self.pipeline, _, _ = eval_setup(
             self.load_config,
+            eval_num_rays_per_chunk=self.eval_num_rays_per_chunk,
             test_mode="inference",
             update_config_callback=streamline_ad_config,
             strict_load=False,

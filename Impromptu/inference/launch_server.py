@@ -18,14 +18,13 @@ import os
 
 def start_qwen_server(
     qwen_ckpt_path,
-    context_length: Optional[int] = None,
-    tp_size: Optional[int] = None,
-    dp_size: Optional[int] = None,
-    mem_fraction_static: Optional[float] = None,
+    context_length: Optional[int] = 4096,
+    tp_size: Optional[int] = 1,
+    dp_size: Optional[int] = 2,
+    mem_fraction_static: Optional[float] = 0.9,
     disable_cuda_graph: bool = False,
     max_running_requests: Optional[int] = None,
     max_prefill_tokens: Optional[int] = None,
-    disable_radix_cache: bool = False,
 ):
     cmd_parts = [
         "/home/wyf/miniconda3/envs/sglang/bin/python -m sglang.launch_server",
@@ -47,8 +46,10 @@ def start_qwen_server(
         cmd_parts.append(f"--max-running-requests {max_running_requests}")
     if max_prefill_tokens is not None:
         cmd_parts.append(f"--max-prefill-tokens {max_prefill_tokens}")
-    if disable_radix_cache:
-        cmd_parts.append("--disable-radix-cache")
+
+    cmd_parts.append("--chunked-prefill-size -1")
+    cmd_parts.append("--log-level INFO")
+    cmd_parts.append("--disable-radix-cache")
     cmd = " \
                 ".join(cmd_parts)
 
@@ -114,11 +115,6 @@ if __name__ == "__main__":
         dest="max_prefill_tokens",
         help="Maximum prefill tokens.",
     )
-    parser.add_argument(
-        "--disable-radix-cache",
-        action="store_true",
-        help="Disable radix cache.",
-    )
     args = parser.parse_args()
 
     _, QWEN_PORT = start_qwen_server(
@@ -130,5 +126,4 @@ if __name__ == "__main__":
         disable_cuda_graph=args.disable_cuda_graph,
         max_running_requests=args.max_running_requests,
         max_prefill_tokens=args.max_prefill_tokens,
-        disable_radix_cache=args.disable_radix_cache,
     )

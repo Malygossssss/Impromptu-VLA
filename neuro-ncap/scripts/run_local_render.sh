@@ -37,6 +37,7 @@ if [ $SHOULD_START_RENDERER == true ]; then
     --port $renderer_port \
     --load-config $RENDERING_CHECKPOITNS_PATH/$seq/config.yml \
     --adjust_pose \
+    --eval-num-rays-per-chunk 4096\
     $RENDERER_ARGS \
     &
 
