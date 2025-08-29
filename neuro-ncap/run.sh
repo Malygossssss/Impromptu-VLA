@@ -3,7 +3,7 @@
 qwen_ckpt_path=$1
 RUNS=${2:-10}
 CUSTOM_SUFFIX=${3:-""}
-MODEL_ARGS="${MODEL_ARGS:---batch-size-one-gpu 1}"
+#MODEL_ARGS="${MODEL_ARGS:---batch-size-one-gpu 1}"
 LAUNCH_ARGS="${LAUNCH_ARGS:---max-prefill-tokens 1024 --mem-fraction-static 0.5}"
 BASE_DIR='/mnt/pub/wyf/workspace/neuroncap'
 NUSCENES_PATH='/nas_pub_data/nuScenes/nuScenes_all'

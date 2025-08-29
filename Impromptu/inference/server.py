@@ -9,11 +9,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Base64Bytes
 from PIL import Image
 import requests
-import httpx
-import asyncio
 import uvicorn
 import argparse
-import gc
 
 import os
 
@@ -188,7 +185,6 @@ parser.add_argument("--qwen_infer_port", type=int, required=True)
 parser.add_argument("--past_pos_path", type=str, required=True)
 parser.add_argument("--ego_status_path", type=str, required=True)
 parser.add_argument("--qwen_ckpt_path", type=str, required=True)
-parser.add_argument("--batch-size-one-gpu", type=int, default=1)
 
 
 args = parser.parse_args()
@@ -227,42 +223,37 @@ async def reset_runner() -> bool:
     return True
 
 
-async def _infer_single(data: InferenceInputs, client: httpx.AsyncClient) -> InferenceOutputs:
+@app.post("/infer")
+async def infer(data: InferenceInputs) -> InferenceOutputs:
 
     imgs_dict = bytestr_to_numpy(data.images)
 
     cam_front = imgs_dict["CAM_FRONT"]
     cam_front_right = imgs_dict["CAM_FRONT_RIGHT"]
     cam_front_left = imgs_dict["CAM_FRONT_LEFT"]
-    config_path = os.path.join(args.qwen_ckpt_path, "preprocessor_config.json")
-    with open(config_path, "r") as f:
-        preproc_cfg = json.load(f)
-    max_pixels = preproc_cfg.get("max_pixels")
-    min_pixels = preproc_cfg.get("min_pixels")
-
-    resized = template.mm_plugin._regularize_images(
-        [cam_front, cam_front_right, cam_front_left],
-        max_pixels=max_pixels,
-        min_pixels=min_pixels,
+    base64_image = numpy_image_to_base64(cam_front, convert_to_gray=args.ablation_gray)
+    right_base64_image = numpy_image_to_base64(
+        cam_front_right, convert_to_gray=args.ablation_gray
     )
-    cam_front, cam_front_right, cam_front_left = resized
-
-    base64_image = numpy_image_to_base64(cam_front)
-    right_base64_image = numpy_image_to_base64(cam_front_right)
-    left_base64_image = numpy_image_to_base64(cam_front_left)
+    left_base64_image = numpy_image_to_base64(
+        cam_front_left, convert_to_gray=args.ablation_gray
+    )
 
     canbus_signal = np.array(data.canbus)
     canbus_signal = preproc_canbus(canbus_signal)
     current_pos = canbus_signal[0:3]  # Take the first three values
 
+    # If the file exists, read historical data
     if os.path.exists(file_path):
         past_positions = np.load(file_path)
     else:
-        past_positions = np.empty((0, 3))
+        past_positions = np.empty((0, 3))  # Initialize an empty array
 
+    # Add current data
     updated_positions = np.vstack([past_positions, current_pos])
 
-    np.save(file_path, updated_positions)
+    # Save back to file
+    np.save(file_path, updated_positions)  # Save as .npy file
 
     print(f"Current canbus_signal[0:3] added, new shape is {updated_positions.shape}")
 
@@ -275,6 +266,7 @@ async def _infer_single(data: InferenceInputs, client: httpx.AsyncClient) -> Inf
     lines = [line.rstrip("\n") for line in lines]
     time_period = len(lines) * 0.5
 
+    # Construct prompt
     fixed_prompt = f"You are an autonomous driving agent. You have access to front view camera image <image>, front left view camera image <image>, front right view camera image <image>. Your task is to do your best to predict future waypoints for the vehicle over the next 3 timesteps, given the vehicle's intent inferred from the images.Provided are the previous ego vehicle status recorded over the last {time_period:.1f} seconds (at 0.5-second intervals). This includes the x and y coordinates of the ego vehicle. Positive x means forward direction while positive y means leftwards. The data is presented in the format [x, y]:."
 
     new_canbus_info = format_ego_status(canbus_signal)
@@ -287,6 +279,7 @@ async def _infer_single(data: InferenceInputs, client: httpx.AsyncClient) -> Inf
     status_history = ""
     total_frames = min(len(lines), 6)
     for i, (pos, line) in enumerate(zip(updated_positions[-total_frames:], lines)):
+        # The current frame is the earliest t-(n-1)*0.5s, the last is t-0.0s
         time_offset = (total_frames - 1 - i) * 0.5
         ego_pos = global_to_ego(np.array(data.ego2world), pos)
         x, y = ego_pos[0], ego_pos[1]
@@ -301,44 +294,37 @@ async def _infer_single(data: InferenceInputs, client: httpx.AsyncClient) -> Inf
                 "role": "user",
                 "content": [
                     {"type": "text", "text": final_prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{right_base64_image}"}},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{left_base64_image}"}},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{right_base64_image}"
+                        },
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{left_base64_image}"
+                        },
+                    },
                 ],
             }
         ],
         "max_tokens": 512,
     }
 
-    response = await client.post(
+    # Call Qwen API
+    qwen_response = requests.post(
         f"http://localhost:{QWEN_PORT}/v1/chat/completions", json=qwen_payload
     )
-    response.raise_for_status()
-    answer = response.json()["choices"][0]["message"]["content"]
+    qwen_response.raise_for_status()
+    answer = qwen_response.json()["choices"][0]["message"]["content"]
 
+    # print("[Qwen response]:", answer)
+
+    # Extract coordinates from natural language (example)
     trajectory = extract_trajectory(answer)
 
-    del imgs_dict, cam_front, cam_front_right, cam_front_left
-
     return InferenceOutputs(
-        trajectory=trajectory, aux_outputs=InferenceAuxOutputs()
+        trajectory=trajectory, aux_outputs=InferenceAuxOutputs()  # Fill as needed
     )
-
-
-@app.post("/infer")
-async def infer(datas: List[InferenceInputs]) -> List[InferenceOutputs]:
-    batch_size = args.batch_size_one_gpu
-    results: List[InferenceOutputs] = []
-    async with httpx.AsyncClient() as client:
-        for start in range(0, len(datas), batch_size):
-            batch = datas[start : start + batch_size]
-            tasks = [_infer_single(d, client) for d in batch]
-            batch_results = await asyncio.gather(*tasks)
-            results.extend(batch_results)
-            del batch_results, batch
-            torch.cuda.empty_cache()
-            gc.collect()
-    return results
 
 
 uvicorn.run(app, port=args.port)
