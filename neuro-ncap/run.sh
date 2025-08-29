@@ -110,7 +110,7 @@ mkdir -p "workdir/${NAME}"
 # --- end NVRTC path ---
 
 /home/wyf/miniconda3/envs/sglang/bin/python /mnt/pub/wyf/workspace/neuroncap/Impromptu/inference/launch_server.py \
-  -qwen_ckpt_path "$qwen_ckpt_path" \
+  --qwen_ckpt_path "$qwen_ckpt_path" \
   --port_file "$PORT_FILE" \
   "${SERVER_ARGS[@]}"
 
