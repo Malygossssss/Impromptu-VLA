@@ -3,6 +3,8 @@
 qwen_ckpt_path=$1
 RUNS=${2:-10}
 CUSTOM_SUFFIX=${3:-""}
+MODEL_ARGS="${MODEL_ARGS:---batch-size-one-gpu 1}"
+LAUNCH_ARGS="${LAUNCH_ARGS:---max-prefill-tokens 1024 --mem-fraction-static 0.7}"
 BASE_DIR='/mnt/pub/wyf/workspace/neuroncap'
 NUSCENES_PATH='/nas_pub_data/nuScenes/nuScenes_all'
 # Model related stuff
@@ -65,7 +67,7 @@ if [ ! -d $RENDERING_FOLDER ]; then
     exit 1
 fi
 
-/home/wyf/miniconda3/envs/sglang/bin/python  /mnt/pub/wyf/workspace/neuroncap/Impromptu/inference/launch_server.py --qwen_ckpt_path $qwen_ckpt_path --port_file $PORT_FILE
+/home/wyf/miniconda3/envs/sglang/bin/python /mnt/pub/wyf/workspace/neuroncap/Impromptu/inference/launch_server.py --qwen_ckpt_path $qwen_ckpt_path --port_file $PORT_FILE $LAUNCH_ARGS
 
 qwen_infer_port=$(cat $PORT_FILE)
 echo "--------------qwen_infer_port is $qwen_infer_port---------------------"
@@ -125,6 +127,7 @@ for SCENARIO in "stationary" "frontal" "side"; do
          PAST_POS_PATH=$PAST_POS_PATH\
          EGO_STATUS_PATH=$EGO_STATUS_PATH\
          qwen_ckpt_path=$qwen_ckpt_path\
+         MODEL_ARGS=$MODEL_ARGS\
          ABLATION_GRAY=$ABLATION_GRAY\
          scripts/run_local_render.sh $sequence $SCENARIO --scenario-category=$SCENARIO --runs $RUNS
         #exit 0
