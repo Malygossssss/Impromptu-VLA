@@ -1,0 +1,6 @@
+# 固定 NumPy & Matplotlib，避免 2.x ABI 冲突
+numpy==1.26.*
+matplotlib==3.7.*
+
+# renderer 需要 tyro；不影响其他镜像（没用到的不会被装）
+tyro==0.7.*
