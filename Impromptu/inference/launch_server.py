@@ -21,7 +21,7 @@ def start_qwen_server(
     context_length: Optional[int] = 4096,
     tp_size: Optional[int] = 1,
     dp_size: Optional[int] = 2,
-    mem_fraction_static: Optional[float] = 0.9,
+    mem_fraction_static: Optional[float] = 0.7,
     disable_cuda_graph: bool = False,
     max_running_requests: Optional[int] = None,
     max_prefill_tokens: Optional[int] = None,
@@ -48,7 +48,7 @@ def start_qwen_server(
         cmd_parts.append(f"--max-prefill-tokens {max_prefill_tokens}")
 
     cmd_parts.append("--chunked-prefill-size -1")
-    cmd_parts.append("--log-level INFO")
+    cmd_parts.append("--log-level info")
     cmd_parts.append("--disable-radix-cache")
     cmd = " \
                 ".join(cmd_parts)
