@@ -73,7 +73,7 @@ echo "Running neuro-ncap in foreground..."
   --engine.dataset.data_root $NUSCENES_PATH \
   --engine.dataset.version v1.0-trainval \
   --engine.dataset.sequence $seq \
-  --engine.logger.log-dir output/$NAME/$output_name-$seq \
+  --engine.logger.log-dir outputs/$NAME/$output_name-$seq \
   ${@:3}
 
 

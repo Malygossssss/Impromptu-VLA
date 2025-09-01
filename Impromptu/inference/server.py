@@ -185,6 +185,8 @@ parser.add_argument("--qwen_infer_port", type=int, required=True)
 parser.add_argument("--past_pos_path", type=str, required=True)
 parser.add_argument("--ego_status_path", type=str, required=True)
 parser.add_argument("--qwen_ckpt_path", type=str, required=True)
+parser.add_argument("--ablation_gray", action="store_true", default=False)
+
 
 
 args = parser.parse_args()
@@ -231,12 +233,12 @@ async def infer(data: InferenceInputs) -> InferenceOutputs:
     cam_front = imgs_dict["CAM_FRONT"]
     cam_front_right = imgs_dict["CAM_FRONT_RIGHT"]
     cam_front_left = imgs_dict["CAM_FRONT_LEFT"]
-    base64_image = numpy_image_to_base64(cam_front, convert_to_gray=args.ablation_gray)
+    base64_image = numpy_image_to_base64(cam_front)
     right_base64_image = numpy_image_to_base64(
-        cam_front_right, convert_to_gray=args.ablation_gray
+        cam_front_right
     )
     left_base64_image = numpy_image_to_base64(
-        cam_front_left, convert_to_gray=args.ablation_gray
+        cam_front_left
     )
 
     canbus_signal = np.array(data.canbus)

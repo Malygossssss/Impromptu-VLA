@@ -1,0 +1,16 @@
+Acceleration: X -1.67, Y -0.20 m/s^2, Velocity: 4.26 m/s 
+Acceleration: X -1.68, Y -0.20 m/s^2, Velocity: 3.89 m/s 
+Acceleration: X -1.40, Y -0.00 m/s^2, Velocity: 3.58 m/s 
+Acceleration: X -1.24, Y -0.31 m/s^2, Velocity: 3.35 m/s 
+Acceleration: X -0.19, Y 0.00 m/s^2, Velocity: 3.22 m/s 
+Acceleration: X 0.46, Y 0.00 m/s^2, Velocity: 3.45 m/s 
+Acceleration: X 1.32, Y 0.00 m/s^2, Velocity: 4.21 m/s 
+Acceleration: X 0.53, Y 0.00 m/s^2, Velocity: 4.48 m/s 
+Acceleration: X -0.00, Y 0.00 m/s^2, Velocity: 4.51 m/s 
+Acceleration: X 0.01, Y 0.00 m/s^2, Velocity: 4.58 m/s 
+Acceleration: X 0.65, Y 0.00 m/s^2, Velocity: 4.80 m/s 
+Acceleration: X -0.61, Y 0.00 m/s^2, Velocity: 4.45 m/s 
+Acceleration: X -0.57, Y 0.00 m/s^2, Velocity: 4.08 m/s 
+Acceleration: X 0.76, Y 0.00 m/s^2, Velocity: 4.49 m/s 
+Acceleration: X -0.46, Y 0.00 m/s^2, Velocity: 4.26 m/s 
+Acceleration: X 0.10, Y 0.00 m/s^2, Velocity: 4.37 m/s 

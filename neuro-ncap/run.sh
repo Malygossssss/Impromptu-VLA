@@ -89,7 +89,7 @@ for SCENARIO in "stationary" "frontal" "side"; do
             echo "undefined sequence"
             exit 0
         fi
-        output_dir="output/$NAME/$SCENARIO-$sequence"
+        output_dir="outputs/$NAME/$SCENARIO-$sequence"
         completed_runs=0
         if [ -d "$output_dir" ]; then
             for run_num in $(seq 0 $((RUNS-1))); do

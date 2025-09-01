@@ -12,6 +12,7 @@ neuro-ncap/dist-packages/
 neuro-ncap/ncap-env/
 neuro-ncap/output/
 neuro-ncap/outputs/
+neuro-ncap/old_outputs/
 neuro-ncap/ncap_weights.tar.gz
 neuro-ncap/neuro-ncap.sif
 sglang/
